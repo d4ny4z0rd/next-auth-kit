@@ -7,8 +7,30 @@ import { getUserById } from "./data/user";
 export const { handlers, signIn, signOut, auth } = NextAuth({
 	pages: {
 		signIn: "/auth/login",
+		error: "/auth/error",
+	},
+	events: {
+		async linkAccount({ user }) {
+			await db.user.update({
+				where: { id: user.id },
+				data: { emailVerified: new Date() },
+			});
+		},
 	},
 	callbacks: {
+		async signIn({ user, account }) {
+			//Allow OAuth without email verification
+			if (account?.provider !== "credentials") return true;
+
+			const existingUser = await getUserById(user.id as string);
+
+			//Prevent signin without email verification
+			if (!existingUser?.emailVerified) return false;
+
+			//TODO: Add 2FA check
+
+			return true;
+		},
 		async session({ token, session }) {
 			console.log({ sessionToken: token });
 			if (token.sub && session.user) {

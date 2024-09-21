@@ -9,4 +9,4 @@ const NewVerificationPage = () => {
 };
 
 export default NewVerificationPage;
-    
+    ``
